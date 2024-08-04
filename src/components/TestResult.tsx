@@ -3,15 +3,15 @@ import React from 'react';
 export interface TestResultProps {
   success: boolean;
   message: string;
-  onRunAnotherTest: () => void;
+  onClose: () => void;
 }
 
-const TestResult: React.FC<TestResultProps> = ({ success, message, onRunAnotherTest }) => {
+const TestResult: React.FC<TestResultProps> = ({ success, message, onClose }) => {
   return (
-    <div>
-      <h2>{success ? 'Test Passed' : 'Test Failed'}</h2>
+    <div className="dialog">
+      <h2>{success ? 'Item Added Successfully' : 'Failed to Add Item'}</h2>
       <p>{message}</p>
-      <button onClick={onRunAnotherTest}>Run Another Test</button>
+      <button onClick={onClose}>Close</button>
     </div>
   );
 };

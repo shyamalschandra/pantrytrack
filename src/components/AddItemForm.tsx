@@ -6,10 +6,11 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import ImageUploader from './ImageUploader';
-import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch, enablePersistence } from 'firebase/firestore';
 import { firestore } from '../utils/firebaseConfig'; // Adjust the import path as needed
 import { uploadImageToStorage } from '../utils/imageUpload'; 
 import Image from 'next/image';
+import styles from './AddItemForm.module.css'; // Add this line
 
 interface Item {
   id: string;
@@ -25,12 +26,14 @@ interface AddItemFormProps {
   onUpdateItem: (updatedItem: Item) => void;
 }
 
-interface AddItemFormProps {
-  onAddItem: (item: Item) => void;
-  itemToUpdate: Item | null;
-  isUpdating: boolean;
-  onUpdateItem: (updatedItem: Item) => void;
-}
+const db = getFirestore();
+enablePersistence(db).catch((err: any) => { // Add type annotation here
+    if (err.code == 'failed-precondition') {
+        console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
+    } else if (err.code == 'unimplemented') {
+        console.log("The current browser does not support all of the features required to enable persistence");
+    }
+});
 
 const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUpdating, onUpdateItem }) => {
   const [items, setItems] = useState<Item[]>([]);
@@ -69,28 +72,31 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
         if (selectedImage) {
           imageUrl = await uploadImageToStorage(selectedImage);
         }
-
+  
         const itemData = {
           name: newItemName,
           quantity: newItemQuantity,
           image: imageUrl,
         };
-
+  
         if (isUpdating && itemToUpdate) {
-          await updateDoc(doc(firestore, 'pantryItems', itemToUpdate.id), itemData);
-          onUpdateItem({ ...itemToUpdate, ...itemData });
+          await updateDoc(doc(db, 'pantryItems', itemToUpdate.id), itemData);
+          onUpdateItem({ ...itemToUpdate, ...itemData }); // Ensure onUpdateItem is called
         } else {
-          const docRef = await addDoc(collection(firestore, 'pantryItems'), itemData);
-          onAddItem({ id: docRef.id, ...itemData });
+          const docRef = await addDoc(collection(db, 'pantryItems'), itemData);
+          onAddItem({ id: docRef.id, ...itemData }); // Ensure onAddItem is called
         }
-
+  
         resetForm();
-        return;
+        setOpenDialog(false); // Close the dialog
+        return; // Success, exit the function
       } catch (error) {
         console.error(`Error on attempt ${attempt + 1}:`, error);
         if (attempt === MAX_RETRIES - 1) {
+          // If this was the last attempt, show an error to the user
           alert('Failed to save item. Please try again later.');
         } else {
+          // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         }
       }
@@ -98,12 +104,10 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
   };
 
   const resetForm = () => {
-    console.log('Resetting form');
     setNewItemName('');
     setNewItemQuantity(1);
     setSelectedImage(null);
     setImageLabels([]);
-    setOpenDialog(false);
   };
 
   const handleDeleteClick = async (itemToDelete: Item) => {
@@ -147,13 +151,13 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
   );
 
   return (
-    <Box sx={{ maxWidth: 600, margin: 'auto', padding: 2, border: '1px solid #ccc' }}>
+    <Box className={styles.container}>
       <IconButton color="primary" aria-label="upload picture" component="label">
         <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
         <PhotoCamera />
       </IconButton>
       {selectedImage && <p>Image selected: {selectedImage.name}</p>}
-      <Button onClick={() => setOpenDialog(true)} variant="contained" color="primary" sx={{ mb: 2 }}>
+      <Button onClick={() => setOpenDialog(true)} variant="contained" color="primary" className={styles.uploadButton}>
         Add New Item
       </Button>
       <TextField
@@ -163,13 +167,13 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
         variant="outlined"
         size="small"
         fullWidth
-        sx={{ mt: 2, mb: 2 }}
+        className={styles.searchField}
       />
       <List>
         {filteredItems.map((item) => (
           <ListItem key={item.id} divider>
             <ListItemText primary={`${item.name} - ${item.quantity}`} />
-            {item.image && <Image src={item.image} alt={item.name} width={50} height={50} style={{ objectFit: 'cover', marginRight: 10 }} />}
+            {item.image && <Image src={item.image} alt={item.name} width={50} height={50} className={styles.imagePreview} />}
             <ListItemSecondaryAction>
               <Button onClick={() => {
                 setNewItemName(item.name);
@@ -186,7 +190,10 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
         ))}
       </List>
 
-      <Dialog open={openDialog} onClose={resetForm}>
+      <Dialog open={openDialog} onClose={() => {
+        resetForm();
+        setOpenDialog(false);
+      }}>
         <DialogTitle>{isUpdating ? 'Update Item' : 'Add New Item'}</DialogTitle>
         <DialogContent>
           <TextField
@@ -232,7 +239,7 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
                 alt="Selected"
                 width={200}
                 height={200}
-                style={{ maxWidth: '200px', maxHeight: '200px' }}
+                className={styles.dialogImage}
               />
               {imageLabels.length > 0 && (
                 <div>
@@ -248,7 +255,12 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUp
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={resetForm}>Cancel</Button>
+          <Button onClick={() => {
+            resetForm();
+            setOpenDialog(false);
+          }}>
+            Cancel
+          </Button>
           <Button onClick={handleAddOrUpdateItem} disabled={!newItemName.trim()}>
             {isUpdating ? 'Update' : 'Add'}
           </Button>
