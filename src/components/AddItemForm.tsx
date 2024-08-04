@@ -33,7 +33,7 @@ const AddItemForm = () => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'pantryItems'));
+    const q = query(collection(firestore, 'pantryItems'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedItems = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -67,9 +67,9 @@ const AddItemForm = () => {
         };
 
         if (isUpdating && itemToUpdate) {
-          await updateDoc(doc(db, 'pantryItems', itemToUpdate.id), itemData);
+          await updateDoc(doc(firestore, 'pantryItems', itemToUpdate.id), itemData);
         } else {
-          await addDoc(collection(db, 'pantryItems'), itemData);
+          await addDoc(collection(firestore, 'pantryItems'), itemData);
         }
 
         resetForm();
@@ -109,7 +109,7 @@ const AddItemForm = () => {
 
   const handleDeleteClick = async (itemToDelete: Item) => {
     try {
-      await deleteDoc(doc(db, 'pantryItems', itemToDelete.id));
+      await deleteDoc(doc(firestore, 'pantryItems', itemToDelete.id));
       setItems(prevItems => prevItems.filter(item => item.id !== itemToDelete.id));
     } catch (error) {
       console.error("Error deleting document: ", error);
@@ -153,11 +153,11 @@ const AddItemForm = () => {
   );
 
   // To check connection
-  enableNetwork(db);
+  enableNetwork(firestore);
   console.log("Network connection enabled");
 
   // If you need to disable
-  // disableNetwork(db);
+  // disableNetwork(firestore);
   // console.log("Network connection disabled");
 
   return (
