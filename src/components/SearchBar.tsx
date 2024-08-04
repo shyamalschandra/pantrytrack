@@ -2,32 +2,40 @@ import React, { useState } from 'react';
 import AddItemForm from './AddItemForm';
 import { TextField, Button, Box, List, ListItem, ListItemText, ListItemSecondaryAction } from '@mui/material';
 
-const ParentComponent = () => {
-  const [items, setItems] = useState([]);
-  const [itemToUpdate, setItemToUpdate] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+// Make sure you have the Item interface defined or imported
+interface Item {
+  id: string;
+  name: string;
+  quantity: number;
+  image?: string;
+}
+
+const SearchBar: React.FC = () => {
+  const [items, setItems] = useState<Item[]>([]);
+  const [itemToUpdate, setItemToUpdate] = useState<Item | null>(null);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddItem = (item) => {
+  const handleAddItem = (item: Item) => {
     setItems((prevItems) => [...prevItems, item]);
   };
 
-  const handleUpdateItem = (updatedItem) => {
+  const handleUpdateItem = (updatedItem: Item) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.name === itemToUpdate.name ? updatedItem : item
+        itemToUpdate && item.name === itemToUpdate.name ? updatedItem : item
       )
     );
     setIsUpdating(false);
     setItemToUpdate(null);
   };
 
-  const handleEditClick = (item) => {
+  const handleEditClick = (item: Item) => {
     setItemToUpdate(item);
     setIsUpdating(true);
   };
 
-  const handleDeleteClick = (itemToDelete) => {
+  const handleDeleteClick = (itemToDelete: Item) => {
     setItems((prevItems) => prevItems.filter(item => item.name !== itemToDelete.name));
   };
 
@@ -75,4 +83,4 @@ const ParentComponent = () => {
   );
 };
 
-export default ParentComponent;
+export default SearchBar;

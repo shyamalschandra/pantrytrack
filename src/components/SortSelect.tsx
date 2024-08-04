@@ -1,7 +1,10 @@
 import React from 'react';
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 
-const SortSelect = ({ value, onChange }) => {
+const SortSelect: React.FC<{
+  value: string;
+  onChange: (event: SelectChangeEvent) => void;
+}> = ({ value, onChange }) => {
   return (
     <FormControl>
       <InputLabel>Sort By</InputLabel>
