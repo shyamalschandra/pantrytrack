@@ -132,7 +132,7 @@ const AddItemForm = () => {
       const model = await mobilenet.load();
 
       // Create an image element and set its source
-      const img = new Image();
+      const img = new globalThis.Image(); // Use globalThis.Image instead of Image
       img.src = imageUrl;
       img.onload = async () => {
         // Classify the image
