@@ -1,38 +1,19 @@
-import React, { useState } from 'react';
-import { testFirebaseStorage } from '../utils/firebaseConfig';
-import TestResult from '../components/TestResult';
+import React from 'react';
 
-export default function TestStoragePage() {
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+export interface TestResultProps {
+  success: boolean;
+  message: string;
+  onRunAnotherTest: () => void;
+}
 
-  const runTest = async () => {
-    setIsLoading(true);
-    console.log('Run Test button clicked');
-    const result = await testFirebaseStorage();
-    console.log('Test result:', result);
-    setTestResult({ success: true, message: result });
-    setIsLoading(false);
-  };
-
-  const handleRunAnotherTest = () => {
-    setTestResult(null);
-  };
-
+const TestResult: React.FC<TestResultProps> = ({ success, message, onRunAnotherTest }) => {
   return (
     <div>
-      <h1>Test Firebase Storage</h1>
-      {!testResult && (
-        <button onClick={runTest} disabled={isLoading}>
-          {isLoading ? 'Running Test...' : 'Run Test'}
-        </button>
-      )}
-      {testResult && (
-        <TestResult 
-          result={testResult.message} 
-          onRunAnotherTest={handleRunAnotherTest} 
-        />
-      )}
+      <h2>{success ? 'Test Passed' : 'Test Failed'}</h2>
+      <p>{message}</p>
+      <button onClick={onRunAnotherTest}>Run Another Test</button>
     </div>
   );
-}
+};
+
+export default TestResult;
