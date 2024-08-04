@@ -13,10 +13,10 @@ export default function TestStoragePage() {
     try {
       const result = await testFirebaseStorage();
       console.log('Test result:', result);
-      setTestResult(result);
+      setTestResult(typeof result === 'string' ? { success: false, message: result } : result);
     } catch (error) {
       console.error('Error running test:', error);
-      setError(`Error running test: ${error.message}`);
+      setError(`Error running test: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
