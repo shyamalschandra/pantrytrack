@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 interface Item {
-  id: number;
+  id: string;
   name: string;
   quantity: number;
 }
