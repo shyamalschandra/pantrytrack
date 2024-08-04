@@ -39,7 +39,7 @@ const SearchBar: React.FC = () => {
     setItems((prevItems) => prevItems.filter(item => item.name !== itemToDelete.name));
   };
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
