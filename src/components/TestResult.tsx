@@ -11,7 +11,7 @@ export default function TestStoragePage() {
     console.log('Run Test button clicked');
     const result = await testFirebaseStorage();
     console.log('Test result:', result);
-    setTestResult(result);
+    setTestResult({ success: true, message: result });
     setIsLoading(false);
   };
 
