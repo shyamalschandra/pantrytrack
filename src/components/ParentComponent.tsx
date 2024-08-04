@@ -11,7 +11,7 @@ interface Item {
   image?: string;
 }
 
-const ParentComponent = () => {
+const ParentComponent: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [itemToUpdate, setItemToUpdate] = useState<Item | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
@@ -66,8 +66,8 @@ const ParentComponent = () => {
         sx={{ mt: 2, mb: 2 }}
       />
       <List>
-        {filteredItems.map((item, index) => (
-          <ListItem key={index} divider>
+        {filteredItems.map((item) => (
+          <ListItem key={item.id} divider>
             <ListItemText primary={`${item.name} - ${item.quantity}`} />
             <ListItemSecondaryAction>
               <Button onClick={() => handleEditClick(item)} variant="contained" color="secondary" size="small" sx={{ mr: 1 }}>

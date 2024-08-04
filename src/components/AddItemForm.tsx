@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { TextField, Button, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { TextField, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, List, ListItem, ListItemText, ListItemSecondaryAction } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
-import { useRef } from 'react';
 import ImageUploader from './ImageUploader';
 import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch } from 'firebase/firestore';
 import { firestore } from '../utils/firebaseConfig'; // Adjust the import path as needed
-import { uploadImageToStorage } from '../utils/imageUpload'; // Add this import
+import { uploadImageToStorage } from '../utils/imageUpload'; 
 import Image from 'next/image';
 
 interface Item {
@@ -19,10 +18,22 @@ interface Item {
   image?: string;
 }
 
-const AddItemForm = () => {
-  const [items, setItems] = useState<Item[]>([]); // Initialize items to an empty array
-  const [itemToUpdate, setItemToUpdate] = useState<Item | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+interface AddItemFormProps {
+  onAddItem: (item: Item) => void;
+  itemToUpdate: Item | null;
+  isUpdating: boolean;
+  onUpdateItem: (updatedItem: Item) => void;
+}
+
+interface AddItemFormProps {
+  onAddItem: (item: Item) => void;
+  itemToUpdate: Item | null;
+  isUpdating: boolean;
+  onUpdateItem: (updatedItem: Item) => void;
+}
+
+const AddItemForm: React.FC<AddItemFormProps> = ({ onAddItem, itemToUpdate, isUpdating, onUpdateItem }) => {
+  const [items, setItems] = useState<Item[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(1);
@@ -45,12 +56,11 @@ const AddItemForm = () => {
       console.error("Error fetching items:", error);
     });
 
-    // Cleanup function
     return () => unsubscribe();
   }, []);
 
   const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000; // 1 second
+  const RETRY_DELAY = 1000;
 
   const handleAddOrUpdateItem = async () => {
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -68,19 +78,19 @@ const AddItemForm = () => {
 
         if (isUpdating && itemToUpdate) {
           await updateDoc(doc(firestore, 'pantryItems', itemToUpdate.id), itemData);
+          onUpdateItem({ ...itemToUpdate, ...itemData });
         } else {
-          await addDoc(collection(firestore, 'pantryItems'), itemData);
+          const docRef = await addDoc(collection(firestore, 'pantryItems'), itemData);
+          onAddItem({ id: docRef.id, ...itemData });
         }
 
         resetForm();
-        return; // Success, exit the function
+        return;
       } catch (error) {
         console.error(`Error on attempt ${attempt + 1}:`, error);
         if (attempt === MAX_RETRIES - 1) {
-          // If this was the last attempt, show an error to the user
           alert('Failed to save item. Please try again later.');
         } else {
-          // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         }
       }
@@ -93,18 +103,7 @@ const AddItemForm = () => {
     setNewItemQuantity(1);
     setSelectedImage(null);
     setImageLabels([]);
-    setIsUpdating(false);
-    setItemToUpdate(null);
     setOpenDialog(false);
-  };
-
-  const handleEditClick = (item: Item) => {
-    console.log('Edit clicked for item:', item);
-    setItemToUpdate(item);
-    setNewItemName(item.name);
-    setNewItemQuantity(item.quantity);
-    setIsUpdating(true);
-    setOpenDialog(true);
   };
 
   const handleDeleteClick = async (itemToDelete: Item) => {
@@ -125,22 +124,17 @@ const AddItemForm = () => {
       const file = e.target.files[0];
       setSelectedImage(file);
 
-      // Create a temporary URL for the image
       const imageUrl = URL.createObjectURL(file);
 
-      // Load the MobileNet model
       const model = await mobilenet.load();
 
-      // Create an image element and set its source
-      const img = new globalThis.Image(); // Use globalThis.Image instead of Image
+      const img = new globalThis.Image();
       img.src = imageUrl;
       img.onload = async () => {
-        // Classify the image
         const predictions = await model.classify(img);
         const labels = predictions.map(p => p.className);
         setImageLabels(labels);
 
-        // Suggest the first label as the item name
         if (labels.length > 0) {
           setNewItemName(labels[0]);
         }
@@ -151,14 +145,6 @@ const AddItemForm = () => {
   const filteredItems = items.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // To check connection
-  enableNetwork(firestore);
-  console.log("Network connection enabled");
-
-  // If you need to disable
-  // disableNetwork(firestore);
-  // console.log("Network connection disabled");
 
   return (
     <Box sx={{ maxWidth: 600, margin: 'auto', padding: 2, border: '1px solid #ccc' }}>
@@ -185,7 +171,11 @@ const AddItemForm = () => {
             <ListItemText primary={`${item.name} - ${item.quantity}`} />
             {item.image && <Image src={item.image} alt={item.name} width={50} height={50} style={{ objectFit: 'cover', marginRight: 10 }} />}
             <ListItemSecondaryAction>
-              <Button onClick={() => handleEditClick(item)} variant="contained" color="secondary" size="small" sx={{ mr: 1 }}>
+              <Button onClick={() => {
+                setNewItemName(item.name);
+                setNewItemQuantity(item.quantity);
+                setOpenDialog(true);
+              }} variant="contained" color="secondary" size="small" sx={{ mr: 1 }}>
                 Edit
               </Button>
               <Button onClick={() => handleDeleteClick(item)} variant="contained" color="error" size="small">
