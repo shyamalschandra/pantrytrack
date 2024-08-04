@@ -6,7 +6,8 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import ImageUploader from './ImageUploader';
-import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch, enablePersistence } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch } from 'firebase/firestore';
+import { enableIndexedDbPersistence } from 'firebase/firestore'; // Correct import for persistence
 import { firestore } from '../utils/firebaseConfig'; // Adjust the import path as needed
 import { uploadImageToStorage } from '../utils/imageUpload'; 
 import Image from 'next/image';
@@ -27,7 +28,7 @@ interface AddItemFormProps {
 }
 
 const db = getFirestore();
-enablePersistence(db).catch((err: any) => { // Add type annotation here
+enableIndexedDbPersistence(db).catch((err: any) => { // Add type annotation here
     if (err.code == 'failed-precondition') {
         console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
     } else if (err.code == 'unimplemented') {
