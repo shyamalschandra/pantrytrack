@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
 // ... other imports if needed ...
 
 const projectId = 'pantrytracker-363c3'; // Replace with your actual project ID
@@ -25,16 +25,12 @@ try {
   throw error; // Rethrow to prevent further execution
 }
 
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-  } else if (err.code === 'unimplemented') {
-    console.warn('The current browser does not support all of the features required to enable persistence');
-  }
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache(/*settings*/ { tabManager: persistentSingleTabManager() })
 });
+
+export { db as firestore };
+export const storage = getStorage(app);
 
 export async function testFirebaseStorage() {
   try {
