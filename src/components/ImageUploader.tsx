@@ -4,6 +4,7 @@ import { storage, firestore } from '../utils/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc } from 'firebase/firestore';
 import { classifyImage } from '../utils/tensorflow';
+import Image from 'next/image';
 
 const ImageUploader = () => {
   const [image, setImage] = useState<File | null>(null);
@@ -60,7 +61,7 @@ const ImageUploader = () => {
     <div>
       {!isOnline && <p>You are currently offline. Some features may be limited.</p>}
       <input type="file" accept="image/*" onChange={handleImageChange} />
-      {image && <img ref={imageRef} src={URL.createObjectURL(image)} alt="preview" style={{ display: 'none' }} />}
+      {image && <Image src={URL.createObjectURL(image)} alt="preview" width={200} height={200} style={{ objectFit: 'cover' }} />}
       <Button onClick={handleUpload} variant="contained" color="primary">
         Upload Image
       </Button>

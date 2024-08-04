@@ -10,7 +10,7 @@ interface Item {
 }
 
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../utils/firebaseConfig'; // Adjust the import path as needed
+import { firestore } from '../utils/firebaseConfig'; // Adjust the import path as needed
 
 const AddItemForm = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -22,7 +22,7 @@ const AddItemForm = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'pantryItems'), (snapshot) => {
+    const unsubscribe = onSnapshot(collection(firestore, 'pantryItems'), (snapshot) => {
       const fetchedItems = snapshot.docs.map(doc => ({
         id: doc.id,
         ...(doc.data() as Omit<Item, 'id'>)
@@ -44,7 +44,7 @@ const AddItemForm = () => {
     console.log('New item to add:', newItem); // Debug log
 
     try {
-      const docRef = await addDoc(collection(db, 'pantryItems'), newItem);
+      const docRef = await addDoc(collection(firestore, 'pantryItems'), newItem);
       console.log('Document written with ID: ', docRef.id); // Debug log
       setNewItemName('');
       setNewItemQuantity(1);
@@ -62,7 +62,7 @@ const AddItemForm = () => {
       };
 
       try {
-        await updateDoc(doc(db, 'pantryItems', itemToUpdate.id), updatedItem);
+        await updateDoc(doc(firestore, 'pantryItems', itemToUpdate.id), updatedItem);
         setIsUpdating(false);
         setItemToUpdate(null);
         setOpenDialog(false);
@@ -82,7 +82,7 @@ const AddItemForm = () => {
 
   const handleDeleteClick = async (itemToDelete: Item) => {
     try {
-      await deleteDoc(doc(db, 'pantryItems', itemToDelete.id));
+      await deleteDoc(doc(firestore, 'pantryItems', itemToDelete.id));
     } catch (error) {
       console.error("Error deleting document: ", error);
     }

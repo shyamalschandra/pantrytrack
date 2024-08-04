@@ -10,6 +10,7 @@ import ImageUploader from './ImageUploader';
 import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, getFirestore, enableNetwork, disableNetwork, writeBatch } from 'firebase/firestore';
 import { db } from '../utils/firebaseConfig'; // Adjust the import path as needed
 import { uploadImageToStorage } from '../utils/imageUpload'; // Add this import
+import Image from 'next/image';
 
 interface Item {
   id: string;
@@ -182,7 +183,7 @@ const AddItemForm = () => {
         {filteredItems.map((item) => (
           <ListItem key={item.id} divider>
             <ListItemText primary={`${item.name} - ${item.quantity}`} />
-            {item.image && <img src={item.image} alt={item.name} style={{ width: 50, height: 50, marginRight: 10 }} />}
+            {item.image && <Image src={item.image} alt={item.name} width={50} height={50} style={{ objectFit: 'cover', marginRight: 10 }} />}
             <ListItemSecondaryAction>
               <Button onClick={() => handleEditClick(item)} variant="contained" color="secondary" size="small" sx={{ mr: 1 }}>
                 Edit
@@ -235,10 +236,12 @@ const AddItemForm = () => {
           {selectedImage && (
             <div>
               <p>Image selected: {selectedImage.name}</p>
-              <img
+              <Image
                 ref={imageRef}
                 src={URL.createObjectURL(selectedImage)}
                 alt="Selected"
+                width={200}
+                height={200}
                 style={{ maxWidth: '200px', maxHeight: '200px' }}
               />
               {imageLabels.length > 0 && (
