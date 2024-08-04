@@ -217,7 +217,7 @@ const AddItemForm = () => {
           <Snackbar open={isOffline} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
             <Alert severity="warning" sx={{ width: '100%' }}>
               <AlertTitle>You are currently offline</AlertTitle>
-              Changes will sync when you're back online. Pending changes: {offlineChanges}
+              Changes will sync when you&apos;re back online. Pending changes: {offlineChanges}
             </Alert>
           </Snackbar>
         </>
