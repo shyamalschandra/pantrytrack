@@ -18,12 +18,15 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: #ffffff; /* Set the background color to white */
+  background-image: none; /* Remove any background image or gradient */
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif; /* Ensure this matches your font settings */
+}
+
+p, span, div, li, a {
+  color: #000000; /* Ensure all text elements have a visible color */
 }
 
 @layer utilities {
