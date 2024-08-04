@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import AddItemForm from './AddItemForm';
 import { TextField, Button, Box, List, ListItem, ListItemText, ListItemSecondaryAction } from '@mui/material';
 
@@ -40,7 +40,7 @@ const ParentComponent = () => {
     setItems((prevItems) => prevItems.filter(item => item.id !== itemToDelete.id));
   };
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
